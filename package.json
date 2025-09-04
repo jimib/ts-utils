@@ -1,6 +1,6 @@
 {
   "name": "@jimib/ts-utils",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
