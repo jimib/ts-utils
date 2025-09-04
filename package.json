@@ -1,11 +1,38 @@
 {
   "name": "ts-utils",
   "version": "1.0.2",
-  "main": "index.ts",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint . --max-warnings 0"
+  },
+  "exports": {
+    "./api.util": "./src/api.util.ts",
+    "./asset.util": "./src/asset.util.ts",
+    "./common.util": "./src/common.util.ts",
+    "./datarenderer.util": "./src/datarenderer.util.tsx",
+    "./device.util": "./src/device.util.ts",
+    "./download.util": "./src/download.util.ts",
+    "./function.util": "./src/function.util.ts",
+    "./hook.util": "./src/hook.util.ts",
+    "./html.util": "./src/html.util.ts",
+    "./math.util": "./src/math.util.ts",
+    "./promise.util": "./src/promise.util.ts",
+    "./random.util": "./src/random.util.ts",
+    "./screen.util": "./src/screen.util.tsx",
+    "./share.util": "./src/share.util.ts",
+    "./string.util": "./src/string.util.ts",
+    "./three.util": "./src/three.util.tsx",
+    "./time.util": "./src/time.util.ts",
+    "./types.three.util": "./src/types.three.util.ts",
+    "./types.util": "./src/types.util.ts",
+    "./url.util": "./src/url.util.ts",
+    "./wait.util": "./src/wait.util.tsx",
+    "./window.util": "./src/window.util.ts"
   },
   "author": "jimib",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "typescript": "latest"
+  }
 }
