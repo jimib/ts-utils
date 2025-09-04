@@ -2,37 +2,151 @@
   "name": "@jimib/ts-utils",
   "version": "1.0.4",
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client/index.js",
+      "types": "./dist/client/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server/index.js",
+      "types": "./dist/server/index.d.ts"
+    },
+    "./api.util": {
+      "import": "./dist/api.util.js",
+      "types": "./dist/api.util.d.ts"
+    },
+    "./asset.util": {
+      "import": "./dist/asset.util.js",
+      "types": "./dist/asset.util.d.ts"
+    },
+    "./common.util": {
+      "import": "./dist/common.util.js",
+      "types": "./dist/common.util.d.ts"
+    },
+    "./datarenderer.util": {
+      "import": "./dist/datarenderer.util.js",
+      "types": "./dist/datarenderer.util.d.ts"
+    },
+    "./device.util": {
+      "import": "./dist/device.util.js",
+      "types": "./dist/device.util.d.ts"
+    },
+    "./download.util": {
+      "import": "./dist/download.util.js",
+      "types": "./dist/download.util.d.ts"
+    },
+    "./function.util": {
+      "import": "./dist/function.util.js",
+      "types": "./dist/function.util.d.ts"
+    },
+    "./hook.util": {
+      "import": "./dist/hook.util.js",
+      "types": "./dist/hook.util.d.ts"
+    },
+    "./html.util": {
+      "import": "./dist/html.util.js",
+      "types": "./dist/html.util.d.ts"
+    },
+    "./math.util": {
+      "import": "./dist/math.util.js",
+      "types": "./dist/math.util.d.ts"
+    },
+    "./promise.util": {
+      "import": "./dist/promise.util.js",
+      "types": "./dist/promise.util.d.ts"
+    },
+    "./random.util": {
+      "import": "./dist/random.util.js",
+      "types": "./dist/random.util.d.ts"
+    },
+    "./screen.util": {
+      "import": "./dist/screen.util.js",
+      "types": "./dist/screen.util.d.ts"
+    },
+    "./share.util": {
+      "import": "./dist/share.util.js",
+      "types": "./dist/share.util.d.ts"
+    },
+    "./string.util": {
+      "import": "./dist/string.util.js",
+      "types": "./dist/string.util.d.ts"
+    },
+    "./three.util": {
+      "import": "./dist/three.util.js",
+      "types": "./dist/three.util.d.ts"
+    },
+    "./time.util": {
+      "import": "./dist/time.util.js",
+      "types": "./dist/time.util.d.ts"
+    },
+    "./types.three.util": {
+      "import": "./dist/types.three.util.js",
+      "types": "./dist/types.three.util.d.ts"
+    },
+    "./types.util": {
+      "import": "./dist/types.util.js",
+      "types": "./dist/types.util.d.ts"
+    },
+    "./url.util": {
+      "import": "./dist/url.util.js",
+      "types": "./dist/url.util.d.ts"
+    },
+    "./wait.util": {
+      "import": "./dist/wait.util.js",
+      "types": "./dist/wait.util.d.ts"
+    },
+    "./window.util": {
+      "import": "./dist/window.util.js",
+      "types": "./dist/window.util.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc && npm run build:types",
+    "build:types": "tsc --emitDeclarationOnly",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
     "lint": "eslint . --max-warnings 0"
   },
-  "exports": {
-    "./api.util": "./src/api.util.ts",
-    "./asset.util": "./src/asset.util.ts",
-    "./common.util": "./src/common.util.ts",
-    "./datarenderer.util": "./src/datarenderer.util.tsx",
-    "./device.util": "./src/device.util.ts",
-    "./download.util": "./src/download.util.ts",
-    "./function.util": "./src/function.util.ts",
-    "./hook.util": "./src/hook.util.ts",
-    "./html.util": "./src/html.util.ts",
-    "./math.util": "./src/math.util.ts",
-    "./promise.util": "./src/promise.util.ts",
-    "./random.util": "./src/random.util.ts",
-    "./screen.util": "./src/screen.util.tsx",
-    "./share.util": "./src/share.util.ts",
-    "./string.util": "./src/string.util.ts",
-    "./three.util": "./src/three.util.tsx",
-    "./time.util": "./src/time.util.ts",
-    "./types.three.util": "./src/types.three.util.ts",
-    "./types.util": "./src/types.util.ts",
-    "./url.util": "./src/url.util.ts",
-    "./wait.util": "./src/wait.util.tsx",
-    "./window.util": "./src/window.util.ts"
+  "dependencies": {
+    "lodash-es": "^4.17.21"
+  },
+  "peerDependencies": {
+    "@react-three/drei": ">=9.0.0",
+    "@react-three/fiber": ">=8.0.0",
+    "react": ">=18.0.0",
+    "three": ">=0.150.0"
+  },
+  "peerDependenciesMeta": {
+    "@react-three/drei": {
+      "optional": true
+    },
+    "@react-three/fiber": {
+      "optional": true
+    },
+    "three": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^24.3.1",
+    "@types/react": "^18.0.0",
+    "@types/three": "^0.180.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
   },
   "author": "jimib",
   "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "typescript": "latest"
-  }
+  "description": "TypeScript utility library with NextJS support"
 }

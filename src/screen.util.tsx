@@ -1,7 +1,12 @@
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { useRefState } from "./hook.util";
 
+// Add proper checks for browser environment
+const isBrowser = typeof window !== "undefined";
+
 export function supportsFullscreen() {
+  if (!isBrowser) return false;
+
   const element = document.body as any;
 
   return (
@@ -13,7 +18,7 @@ export function supportsFullscreen() {
 }
 
 export function enterFullscreen(element?: HTMLElement) {
-  if (!supportsFullscreen()) {
+  if (!isBrowser || !supportsFullscreen()) {
     return;
   }
 
@@ -34,6 +39,8 @@ export function enterFullscreen(element?: HTMLElement) {
 
 // Exit fullscreen mode
 export function exitFullscreen() {
+  if (!isBrowser) return;
+
   if (document.exitFullscreen) {
     document.exitFullscreen();
   } else if ((document as any).webkitExitFullscreen) {
@@ -53,6 +60,8 @@ export function useScreen({ onBlur, onFocus }: ScreenProps) {
   const [refState] = useRefState({ onBlur, onFocus });
 
   useEffect(() => {
+    if (!isBrowser) return;
+
     function handleVisibilityChange() {
       if (document.visibilityState === "visible") {
         refState.onFocus?.();

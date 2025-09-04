@@ -1,8 +1,27 @@
 "use client";
 
-import { MappedTextureType, useTexture } from "@react-three/drei";
-import type { ThreeElements } from "@react-three/fiber";
-import { RootState, useFrame } from "@react-three/fiber";
+// Add proper imports with fallbacks
+import { memo, ReactNode, useMemo, useRef } from "react";
+
+// Make Three.js imports optional
+let useTexture: any = null;
+let useFrame: any = null;
+let MappedTextureType: any = null;
+let ThreeElements: any = null;
+let RootState: any = null;
+
+try {
+  const drei = require("@react-three/drei");
+  const fiber = require("@react-three/fiber");
+  useTexture = drei.useTexture;
+  useFrame = fiber.useFrame;
+  MappedTextureType = drei.MappedTextureType;
+  ThreeElements = fiber.ThreeElements;
+  RootState = fiber.RootState;
+} catch (e) {
+  // Three.js dependencies not available
+  console.warn("@jimib/ts-utils: Three.js dependencies not found");
+}
 import each from "lodash-es/each";
 import every from "lodash-es/every";
 import get from "lodash-es/get";
@@ -11,7 +30,6 @@ import isFunction from "lodash-es/isFunction";
 import isNumber from "lodash-es/isNumber";
 import set from "lodash-es/set";
 import size from "lodash-es/size";
-import { memo, ReactNode, useMemo, useRef } from "react";
 import {
   BufferGeometry,
   CanvasTexture,
@@ -31,8 +49,18 @@ import {
 } from "./types.three.util";
 import { Num3, Num4 } from "./types.util";
 
-export type GroupProps = ThreeElements["group"];
-export type MeshProps = ThreeElements["mesh"];
+export type GroupProps = any;
+export type MeshProps = any;
+
+// Declare JSX elements for Three.js
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      mesh: any;
+    }
+  }
+}
 
 export const toVector3 = (val: any) => {
   if (!val) {
@@ -103,11 +131,18 @@ export const DEG_360 = degToRad(360);
 export const DEG = degToRad;
 
 interface OnFrameProps {
-  onFrame?(state: RootState, dt: number): void;
+  onFrame?(state: any, dt: number): void;
 }
 
 export function OnFrame({ onFrame, ...props }: OnFrameProps) {
-  useFrame((state, dt) => {
+  if (!useFrame) {
+    console.warn(
+      "@jimib/ts-utils: useFrame not available - Three.js dependencies not installed"
+    );
+    return null;
+  }
+
+  useFrame((state: any, dt: number) => {
     onFrame?.(state, dt);
   });
 
@@ -118,6 +153,7 @@ export function OnFrame({ onFrame, ...props }: OnFrameProps) {
 // }
 
 interface GroupAnimateProps extends GroupProps {
+  children?: ReactNode;
   onFrame?(ref: Group, dt: number, options: { time: number }): void;
 }
 
@@ -128,12 +164,14 @@ export function GroupAnimate({
 }: GroupAnimateProps) {
   const ref = useRef<Group>(null);
 
-  useFrame(({ clock }, dt) => {
-    const time = clock.getElapsedTime();
-    if (ref.current) {
-      onFrame?.(ref.current, dt, { time });
-    }
-  });
+  if (useFrame) {
+    useFrame(({ clock }: any, dt: number) => {
+      const time = clock.getElapsedTime();
+      if (ref.current) {
+        onFrame?.(ref.current, dt, { time });
+      }
+    });
+  }
 
   return (
     <group ref={ref} {...props}>
@@ -196,13 +234,20 @@ export const applyPropsTo3dScene = (scene: Scene, config: any) => {
 
 interface TextureLoaderProps<T extends string | string[]> {
   url: T;
-  render: (texture: MappedTextureType<T>) => ReactNode;
+  render: (texture: any) => ReactNode;
 }
 
 export function TextureLoader<T extends string | string[]>({
   url,
   render,
 }: TextureLoaderProps<T>): ReactNode {
+  if (!useTexture) {
+    console.warn(
+      "@jimib/ts-utils: useTexture not available - Three.js dependencies not installed"
+    );
+    return null;
+  }
+
   const texture = useTexture(url);
   return render(texture);
 }
@@ -391,6 +436,13 @@ export function splitColorIntegerByOpacity(color: number): {
 }
 
 export function useTextureSection(src: string, region: Num4) {
+  if (!useTexture) {
+    console.warn(
+      "@jimib/ts-utils: useTexture not available - Three.js dependencies not installed"
+    );
+    return null;
+  }
+
   const textureInput = useTexture(src);
 
   const textureOutput = useMemo(() => {

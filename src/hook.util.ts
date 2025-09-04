@@ -1,6 +1,5 @@
 import each from "lodash-es/each";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { playAnimation, PlayAnimationResult } from "./animation.util";
 import { isDevelopment } from "./common.util";
 import { mix } from "./math.util";
 import { nullify } from "./types.util";
@@ -178,7 +177,7 @@ export const useFadeInAndOut = ({
 }: FadeInAndOutOptions = {}): FadeInAndOutMethods => {
   const [state] = useState(() => ({
     value: defaultValue,
-    currentAnimation: nullify<PlayAnimationResult>(),
+    currentAnimation: null as any,
   }));
 
   return useMemo(() => {
@@ -190,24 +189,33 @@ export const useFadeInAndOut = ({
         state.currentAnimation?.stop();
 
         return new Promise<null>((resolve) => {
-          state.currentAnimation = playAnimation({
-            duration:
-              (options.duration ?? duration) *
-              Math.abs(endOpacity - startOpacity),
-            onUpdate({ progress, time }) {
-              state.value = mix(startOpacity, endOpacity, progress);
-              onUpdate?.(state.value, { progress, time });
-              options.onUpdate?.(state.value, { progress, time });
-            },
-            onComplete({ progress, time }) {
+          // Simple animation implementation without external dependency
+          const startTime = Date.now();
+          const animDuration =
+            (options.duration ?? duration) *
+            Math.abs(endOpacity - startOpacity);
+
+          const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / animDuration, 1);
+
+            state.value = mix(startOpacity, endOpacity, progress);
+            onUpdate?.(state.value, { progress, time: elapsed });
+            options.onUpdate?.(state.value, { progress, time: elapsed });
+
+            if (progress < 1) {
+              state.currentAnimation = requestAnimationFrame(animate);
+            } else {
               state.value = endOpacity;
-              onUpdate?.(state.value, { progress, time });
-              options.onUpdate?.(state.value, { progress, time });
-              onComplete?.({ progress, time });
-              options.onComplete?.({ progress, time });
+              onUpdate?.(state.value, { progress: 1, time: elapsed });
+              options.onUpdate?.(state.value, { progress: 1, time: elapsed });
+              onComplete?.({ progress: 1, time: elapsed });
+              options.onComplete?.({ progress: 1, time: elapsed });
               resolve(null);
-            },
-          });
+            }
+          };
+
+          state.currentAnimation = requestAnimationFrame(animate);
         });
       },
       fadeIn: (options: FadeOptions) => methods.fadeTo(1, options),
