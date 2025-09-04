@@ -1,9 +1,6 @@
 "use client";
 
-// Add proper imports with fallbacks
-import { memo, ReactNode, useMemo, useRef } from "react";
-
-// Make Three.js imports optional
+// Conditional imports with fallbacks
 let useTexture: any = null;
 let useFrame: any = null;
 let MappedTextureType: any = null;
@@ -13,15 +10,18 @@ let RootState: any = null;
 try {
   const drei = require("@react-three/drei");
   const fiber = require("@react-three/fiber");
+  const three = require("three");
+
   useTexture = drei.useTexture;
   useFrame = fiber.useFrame;
   MappedTextureType = drei.MappedTextureType;
   ThreeElements = fiber.ThreeElements;
   RootState = fiber.RootState;
 } catch (e) {
-  // Three.js dependencies not available
+  // Three.js dependencies not available - will be handled gracefully
   console.warn("@jimib/ts-utils: Three.js dependencies not found");
 }
+
 import each from "lodash-es/each";
 import every from "lodash-es/every";
 import get from "lodash-es/get";
@@ -30,17 +30,34 @@ import isFunction from "lodash-es/isFunction";
 import isNumber from "lodash-es/isNumber";
 import set from "lodash-es/set";
 import size from "lodash-es/size";
-import {
-  BufferGeometry,
-  CanvasTexture,
-  Color,
-  Euler,
-  Group,
-  Object3D,
-  Object3DEventMap,
-  Scene,
-  Vector3,
-} from "three";
+import { memo, ReactNode, useMemo, useRef } from "react";
+
+// Only import Three.js types if available
+let BufferGeometry: any = null;
+let CanvasTexture: any = null;
+let Color: any = null;
+let Euler: any = null;
+let Group: any = null;
+let Object3D: any = null;
+let Object3DEventMap: any = null;
+let Scene: any = null;
+let Vector3: any = null;
+
+try {
+  const three = require("three");
+  BufferGeometry = three.BufferGeometry;
+  CanvasTexture = three.CanvasTexture;
+  Color = three.Color;
+  Euler = three.Euler;
+  Group = three.Group;
+  Object3D = three.Object3D;
+  Object3DEventMap = three.Object3DEventMap;
+  Scene = three.Scene;
+  Vector3 = three.Vector3;
+} catch (e) {
+  // Three.js not available
+}
+
 import {
   VeryWeakEuler,
   VeryWeakScale,
@@ -49,6 +66,7 @@ import {
 } from "./types.three.util";
 import { Num3, Num4 } from "./types.util";
 
+// Type definitions with fallbacks
 export type GroupProps = any;
 export type MeshProps = any;
 
@@ -63,7 +81,7 @@ declare global {
 }
 
 export const toVector3 = (val: any) => {
-  if (!val) {
+  if (!val || !Vector3) {
     return val;
   }
 
@@ -77,27 +95,33 @@ export const toVector3 = (val: any) => {
 };
 
 export function translate(
-  position: Num3 | Vector3,
+  position: Num3 | any,
   offset: Num3 = [0, 0, 0]
-): Num3 | Vector3 {
+): Num3 | any {
   if (Array.isArray(position)) {
     return position.map((item, i) => item + (offset[i] ?? 0)) as Num3;
   }
-  if (position instanceof Vector3) {
+  if (position && position.clone && position.add && Vector3) {
     return position.clone().add(new Vector3(...offset));
   }
 
   return position;
 }
 
-export type NodeDictionary = { [name: string]: Object3D<Object3DEventMap> };
+export type NodeDictionary = { [name: string]: any };
 
 export interface GltfNodeMeshProps {
   nodes: NodeDictionary;
   path: string;
 }
+
 export const GltfNodeMesh = memo(
   ({ nodes, path, ...props }: GltfNodeMeshProps & MeshProps): ReactNode => {
+    if (!BufferGeometry) {
+      console.warn("@jimib/ts-utils: Three.js not available for GltfNodeMesh");
+      return null;
+    }
+
     const geometry = get(nodes, `${path}.geometry`);
 
     if (geometry instanceof BufferGeometry) {
@@ -136,9 +160,7 @@ interface OnFrameProps {
 
 export function OnFrame({ onFrame, ...props }: OnFrameProps) {
   if (!useFrame) {
-    console.warn(
-      "@jimib/ts-utils: useFrame not available - Three.js dependencies not installed"
-    );
+    console.warn("@jimib/ts-utils: useFrame not available");
     return null;
   }
 
@@ -148,13 +170,10 @@ export function OnFrame({ onFrame, ...props }: OnFrameProps) {
 
   return null;
 }
-// interface OnFrameProps extends GroupProps {
-// 	onFrame?(ref: Group, dt: number, options: { time: number }): void;
-// }
 
 interface GroupAnimateProps extends GroupProps {
   children?: ReactNode;
-  onFrame?(ref: Group, dt: number, options: { time: number }): void;
+  onFrame?(ref: any, dt: number, options: { time: number }): void;
 }
 
 export function GroupAnimate({
@@ -162,16 +181,23 @@ export function GroupAnimate({
   onFrame,
   ...props
 }: GroupAnimateProps) {
-  const ref = useRef<Group>(null);
+  const ref = useRef<any>(null);
 
-  if (useFrame) {
-    useFrame(({ clock }: any, dt: number) => {
-      const time = clock.getElapsedTime();
-      if (ref.current) {
-        onFrame?.(ref.current, dt, { time });
-      }
-    });
+  if (!useFrame) {
+    console.warn("@jimib/ts-utils: useFrame not available for GroupAnimate");
+    return (
+      <group ref={ref} {...props}>
+        {children}
+      </group>
+    );
   }
+
+  useFrame(({ clock }: any, dt: number) => {
+    const time = clock.getElapsedTime();
+    if (ref.current) {
+      onFrame?.(ref.current, dt, { time });
+    }
+  });
 
   return (
     <group ref={ref} {...props}>
@@ -187,7 +213,9 @@ export const applyVisibilityTo3dObject = (target: any, visible: boolean) => {
 
 export const applyPositionTo3dObject = (target: any, position: any) => {
   if (!target || !position) return;
-  target.position.copy(toVector3(position));
+  if (target.position && target.position.copy && toVector3) {
+    target.position.copy(toVector3(position));
+  }
 };
 
 export const applyRotationTo3dObject = (target: any, rotation: any) => {
@@ -195,18 +223,24 @@ export const applyRotationTo3dObject = (target: any, rotation: any) => {
 
   rotation = toVector3(rotation);
 
-  target.rotation.x = rotation.x;
-  target.rotation.y = rotation.y;
-  target.rotation.z = rotation.z;
+  if (target.rotation) {
+    target.rotation.x = rotation.x;
+    target.rotation.y = rotation.y;
+    target.rotation.z = rotation.z;
+  }
 };
 
 export const applyScaleTo3dObject = (target: any, scale: any) => {
   if (!target) return;
 
   if (isNumber(scale)) {
-    target.scale.set(scale, scale, scale);
+    if (target.scale && target.scale.set) {
+      target.scale.set(scale, scale, scale);
+    }
   } else if (isArray(scale) && size(scale) == 3 && every(scale, isNumber)) {
-    target.scale.set(...scale);
+    if (target.scale && target.scale.set) {
+      target.scale.set(...scale);
+    }
   }
 };
 
@@ -216,7 +250,7 @@ export const applyOpacityTo3dMaterial = (target: any, value: number) => {
   target.opacity = value;
 };
 
-export const applyPropsTo3dScene = (scene: Scene, config: any) => {
+export const applyPropsTo3dScene = (scene: any, config: any) => {
   each(config, (props, id) => {
     var item = scene.getObjectByName(id);
 
@@ -242,9 +276,7 @@ export function TextureLoader<T extends string | string[]>({
   render,
 }: TextureLoaderProps<T>): ReactNode {
   if (!useTexture) {
-    console.warn(
-      "@jimib/ts-utils: useTexture not available - Three.js dependencies not installed"
-    );
+    console.warn("@jimib/ts-utils: useTexture not available");
     return null;
   }
 
@@ -252,7 +284,9 @@ export function TextureLoader<T extends string | string[]>({
   return render(texture);
 }
 
-export function weakVector3ToVector3(value: VeryWeakVector3): Vector3 {
+export function weakVector3ToVector3(value: VeryWeakVector3): any {
+  if (!Vector3) return value;
+
   if (value instanceof Vector3) {
     return value;
   }
@@ -262,18 +296,21 @@ export function weakVector3ToVector3(value: VeryWeakVector3): Vector3 {
 
   return new Vector3(value.x ?? 0, value.y ?? 0, value.z ?? 0);
 }
+
 export function weakVector3ToArray(value: VeryWeakVector3): Num3 {
-  if (value instanceof Vector3) {
-    return value.toArray();
-  }
   if (value instanceof Array) {
     return value as Num3;
+  }
+  if (value && typeof value === "object" && "toArray" in value) {
+    return value.toArray();
   }
 
   return [value.x ?? 0, value.y ?? 0, value.z ?? 0] as Num3;
 }
 
-export function weakEulerToEuler(value: VeryWeakEuler): Euler {
+export function weakEulerToEuler(value: VeryWeakEuler): any {
+  if (!Euler) return value;
+
   if (typeof value === "number") {
     return new Euler(value, value, value);
   }
@@ -286,11 +323,12 @@ export function weakEulerToEuler(value: VeryWeakEuler): Euler {
 
   return new Euler(value.x ?? 0, value.y ?? 0, value.z ?? 0);
 }
+
 export function weakEulerToArray(value: VeryWeakEuler): Num3 {
   if (typeof value === "number") {
     return [value, value, value];
   }
-  if (value instanceof Euler) {
+  if (value && typeof value === "object" && "toArray" in value) {
     return value.toArray().slice(0, 3) as Num3;
   }
   if (value instanceof Array) {
@@ -300,7 +338,9 @@ export function weakEulerToArray(value: VeryWeakEuler): Num3 {
   return [value.x ?? 0, value.y ?? 0, value.z ?? 0] as Num3;
 }
 
-export function weakScaleToVector3(value: VeryWeakScale): Vector3 {
+export function weakScaleToVector3(value: VeryWeakScale): any {
+  if (!Vector3) return value;
+
   if (value instanceof Vector3) {
     return value;
   }
@@ -313,12 +353,13 @@ export function weakScaleToVector3(value: VeryWeakScale): Vector3 {
 
   return new Vector3(value.x ?? 0, value.y ?? 0, value.z ?? 0);
 }
+
 export function weakScaleToArray(value: VeryWeakScale): Num3 {
-  if (value instanceof Vector3) {
-    return value.toArray();
-  }
   if (value instanceof Array) {
     return value as Num3;
+  }
+  if (value && typeof value === "object" && "toArray" in value) {
+    return value.toArray();
   }
   if (typeof value === "number") {
     return [value, value, value];
@@ -327,7 +368,9 @@ export function weakScaleToArray(value: VeryWeakScale): Num3 {
   return [value.x ?? 0, value.y ?? 0, value.z ?? 0] as Num3;
 }
 
-export function weakColorToColor(value: WeakColor): Color {
+export function weakColorToColor(value: WeakColor): any {
+  if (!Color) return value;
+
   if (value instanceof Color) {
     return value;
   }
@@ -337,7 +380,6 @@ export function weakColorToColor(value: WeakColor): Color {
   }
 
   if (typeof value === "string") {
-    // Parse as hexadecimal
     const colorInteger = parseInt(value, 16);
 
     if (colorInteger || colorInteger === 0) {
@@ -347,22 +389,20 @@ export function weakColorToColor(value: WeakColor): Color {
 
   return new Color(value);
 }
+
 export function weakColorToArray(value: WeakColor): Num4 {
-  if (value instanceof Color) {
+  if (value instanceof Array) {
+    return [...value, 1] as Num4;
+  }
+  if (value && typeof value === "object" && "toArray" in value) {
     return [...value.toArray(), 1] as Num4;
   }
 
-  if (Array.isArray(value)) {
-    return [...value, 1] as Num4;
-  }
-
   if (typeof value === "string") {
-    // Parse as hexadecimal
     const colorInteger = parseInt(value, 16);
 
     if (colorInteger || colorInteger === 0) {
       const { rgb, opacity } = splitColorIntegerByOpacity(colorInteger);
-
       return [...new Color(rgb).toArray(), opacity] as Num4;
     }
 
@@ -371,15 +411,14 @@ export function weakColorToArray(value: WeakColor): Num4 {
 
   if (typeof value === "number") {
     const { rgb, opacity } = splitColorIntegerByOpacity(value);
-
     return [...new Color(rgb).toArray(), opacity] as Num4;
   }
 
   return [...new Color(value).toArray(), 1] as Num4;
 }
+
 export function findWeakColorOpacity(value: WeakColor): number {
   if (typeof value === "string") {
-    // Parse as hexadecimal
     const colorInteger = parseInt(value, 16);
 
     if (colorInteger || colorInteger === 0) {
@@ -393,22 +432,21 @@ export function findWeakColorOpacity(value: WeakColor): number {
 
   return 1;
 }
+
 export function getOpacityFromColorInteger(color: number): number {
   if (color <= 0xffffff) {
     return 1.0;
   }
 
-  // Extract alpha channel (last 8 bits)
   const alphaByte = (color & 0xff) >>> 0;
-  // Convert to 0-1 range
   return alphaByte / 255;
 }
+
 export function splitColorInteger(
   color: number
 ): [r: number, g: number, b: number, a: number] {
   const hasAlpha = color > 0xffffff;
 
-  // Extract components using bitwise operations
   const r = (color >>> (hasAlpha ? 24 : 16)) & 0xff;
   const g = (color >>> (hasAlpha ? 16 : 8)) & 0xff;
   const b = (color >>> (hasAlpha ? 8 : 0)) & 0xff;
@@ -416,17 +454,14 @@ export function splitColorInteger(
 
   return [r, g, b, a / 255];
 }
+
 export function splitColorIntegerByOpacity(color: number): {
   rgb: number;
   opacity: number;
 } {
-  // Check if we have alpha channel (32-bit color)
   const hasAlpha = color > 0xffffff;
 
-  // Extract RGB components (shift right 8 bits to remove alpha)
   const rgbValue = hasAlpha ? color >>> 8 : color;
-
-  // Extract alpha channel (last 8 bits) or default to 255 (opaque)
   const alpha = hasAlpha ? color & 0xff : 0xff;
 
   return {
@@ -436,10 +471,8 @@ export function splitColorIntegerByOpacity(color: number): {
 }
 
 export function useTextureSection(src: string, region: Num4) {
-  if (!useTexture) {
-    console.warn(
-      "@jimib/ts-utils: useTexture not available - Three.js dependencies not installed"
-    );
+  if (!useTexture || !CanvasTexture) {
+    console.warn("@jimib/ts-utils: useTexture or CanvasTexture not available");
     return null;
   }
 
