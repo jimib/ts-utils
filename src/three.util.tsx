@@ -71,11 +71,54 @@ export type GroupProps = any;
 export type MeshProps = any;
 
 // Declare JSX elements for Three.js
+// This provides fallback JSX elements when react-three/fiber is not available
 declare global {
   namespace JSX {
     interface IntrinsicElements {
       group: any;
       mesh: any;
+      geometry: any;
+      material: any;
+      primitive: any;
+      scene: any;
+      camera: any;
+      light: any;
+      ambientLight: any;
+      directionalLight: any;
+      pointLight: any;
+      spotLight: any;
+      hemisphereLight: any;
+      rectAreaLight: any;
+      boxGeometry: any;
+      sphereGeometry: any;
+      planeGeometry: any;
+      cylinderGeometry: any;
+      coneGeometry: any;
+      torusGeometry: any;
+      octahedronGeometry: any;
+      tetrahedronGeometry: any;
+      icosahedronGeometry: any;
+      dodecahedronGeometry: any;
+      ringGeometry: any;
+      circleGeometry: any;
+      tubeGeometry: any;
+      latheGeometry: any;
+      extrudeGeometry: any;
+      shapeGeometry: any;
+      textGeometry: any;
+      bufferGeometry: any;
+      meshBasicMaterial: any;
+      meshStandardMaterial: any;
+      meshPhongMaterial: any;
+      meshLambertMaterial: any;
+      meshNormalMaterial: any;
+      meshToonMaterial: any;
+      meshPhysicalMaterial: any;
+      lineBasicMaterial: any;
+      pointsMaterial: any;
+      spriteMaterial: any;
+      rawShaderMaterial: any;
+      shaderMaterial: any;
     }
   }
 }
