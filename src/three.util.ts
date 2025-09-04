@@ -24,13 +24,12 @@ try {
 
 import each from "lodash-es/each";
 import every from "lodash-es/every";
-import get from "lodash-es/get";
 import isArray from "lodash-es/isArray";
 import isFunction from "lodash-es/isFunction";
 import isNumber from "lodash-es/isNumber";
 import set from "lodash-es/set";
 import size from "lodash-es/size";
-import { memo, ReactNode, useMemo, useRef } from "react";
+import { ReactNode, useMemo } from "react";
 
 // Only import Three.js types if available
 let BufferGeometry: any = null;
@@ -70,59 +69,6 @@ import { Num3, Num4 } from "./types.util";
 export type GroupProps = any;
 export type MeshProps = any;
 
-// Declare JSX elements for Three.js
-// This provides fallback JSX elements when react-three/fiber is not available
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      group: any;
-      mesh: any;
-      geometry: any;
-      material: any;
-      primitive: any;
-      scene: any;
-      camera: any;
-      light: any;
-      ambientLight: any;
-      directionalLight: any;
-      pointLight: any;
-      spotLight: any;
-      hemisphereLight: any;
-      rectAreaLight: any;
-      boxGeometry: any;
-      sphereGeometry: any;
-      planeGeometry: any;
-      cylinderGeometry: any;
-      coneGeometry: any;
-      torusGeometry: any;
-      octahedronGeometry: any;
-      tetrahedronGeometry: any;
-      icosahedronGeometry: any;
-      dodecahedronGeometry: any;
-      ringGeometry: any;
-      circleGeometry: any;
-      tubeGeometry: any;
-      latheGeometry: any;
-      extrudeGeometry: any;
-      shapeGeometry: any;
-      textGeometry: any;
-      bufferGeometry: any;
-      meshBasicMaterial: any;
-      meshStandardMaterial: any;
-      meshPhongMaterial: any;
-      meshLambertMaterial: any;
-      meshNormalMaterial: any;
-      meshToonMaterial: any;
-      meshPhysicalMaterial: any;
-      lineBasicMaterial: any;
-      pointsMaterial: any;
-      spriteMaterial: any;
-      rawShaderMaterial: any;
-      shaderMaterial: any;
-    }
-  }
-}
-
 export const toVector3 = (val: any) => {
   if (!val || !Vector3) {
     return val;
@@ -151,30 +97,6 @@ export function translate(
   return position;
 }
 
-export type NodeDictionary = { [name: string]: any };
-
-export interface GltfNodeMeshProps {
-  nodes: NodeDictionary;
-  path: string;
-}
-
-export const GltfNodeMesh = memo(
-  ({ nodes, path, ...props }: GltfNodeMeshProps & MeshProps): ReactNode => {
-    if (!BufferGeometry) {
-      console.warn("@jimib/ts-utils: Three.js not available for GltfNodeMesh");
-      return null;
-    }
-
-    const geometry = get(nodes, `${path}.geometry`);
-
-    if (geometry instanceof BufferGeometry) {
-      return <mesh geometry={geometry} {...props} />;
-    }
-
-    return null;
-  }
-);
-
 export const degToRad = (deg: number) => (deg * Math.PI) / 180;
 export const radToDeg = (rad: number) => (rad * 180) / Math.PI;
 
@@ -196,58 +118,6 @@ export const DEG_330 = degToRad(330);
 export const DEG_360 = degToRad(360);
 
 export const DEG = degToRad;
-
-interface OnFrameProps {
-  onFrame?(state: any, dt: number): void;
-}
-
-export function OnFrame({ onFrame, ...props }: OnFrameProps) {
-  if (!useFrame) {
-    console.warn("@jimib/ts-utils: useFrame not available");
-    return null;
-  }
-
-  useFrame((state: any, dt: number) => {
-    onFrame?.(state, dt);
-  });
-
-  return null;
-}
-
-interface GroupAnimateProps extends GroupProps {
-  children?: ReactNode;
-  onFrame?(ref: any, dt: number, options: { time: number }): void;
-}
-
-export function GroupAnimate({
-  children,
-  onFrame,
-  ...props
-}: GroupAnimateProps) {
-  const ref = useRef<any>(null);
-
-  if (!useFrame) {
-    console.warn("@jimib/ts-utils: useFrame not available for GroupAnimate");
-    return (
-      <group ref={ref} {...props}>
-        {children}
-      </group>
-    );
-  }
-
-  useFrame(({ clock }: any, dt: number) => {
-    const time = clock.getElapsedTime();
-    if (ref.current) {
-      onFrame?.(ref.current, dt, { time });
-    }
-  });
-
-  return (
-    <group ref={ref} {...props}>
-      {children}
-    </group>
-  );
-}
 
 export const applyVisibilityTo3dObject = (target: any, visible: boolean) => {
   if (!target) return;

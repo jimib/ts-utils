@@ -22,7 +22,7 @@
     "./screen.util": "./src/screen.util.ts",
     "./share.util": "./src/share.util.ts",
     "./string.util": "./src/string.util.ts",
-    "./three.util": "./src/three.util.tsx",
+    "./three.util": "./src/three.util.ts",
     "./time.util": "./src/time.util.ts",
     "./types.three.util": "./src/types.three.util.ts",
     "./types.util": "./src/types.util.ts",
