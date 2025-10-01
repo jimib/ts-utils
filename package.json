@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./animation.util": "./src/animation.util.ts",
     "./api.util": "./src/api.util.ts",
+    "./api.server": "./src/api.server.ts",
     "./asset.util": "./src/asset.util.ts",
     "./common.util": "./src/common.util.ts",
     "./datarenderer.util": "./src/datarenderer.util.tsx",
